@@ -37,7 +37,7 @@ class Table extends PowerGridComponent
             ->showPerPage(20) // Показывает раскрывающееся меню для выбора количества строк, отображаемых на странице
             ->showRecordCount(1-10)// Показывает количество записей внизу страницы
             ->showExportOption('download', ['excel', 'csv']) //кнопку экспорта вверху страницы
-            ->showSearchInput() // Включает функцию поиска и отображает поле ввода поиска вверху страницы
+          /*  ->showSearchInput() // Включает функцию поиска и отображает поле ввода поиска вверху страницы*/
             ->showToggleColumns(); // Отображает кнопку для скрытия / отображения (переключения) столбцов
 
     }
@@ -75,7 +75,7 @@ class Table extends PowerGridComponent
     {
         return [
             'user' => ['name','email','id'],
-            'account' => ['name','account_number','user_id','id']// В приведенном выше примере добавляется связь с моделью и разрешается nameпоиск в столбце
+            'account' => ['name','account_number','user_id','id']// В приведенном примере добавляется связь с моделью и разрешается nameпоиск в столбце
         ];
     }
 
@@ -101,10 +101,8 @@ class Table extends PowerGridComponent
             })// В поле базы данных created_at хранится дата yyyy-mm-dd H:i:s
             ->addColumn('updated_at_formatted', function(User $model) {
                 return Carbon::parse($model->updated_at)->format('d/m/Y H:i:s');
-            })
-            ->addColumn('available', function (User $model) {
-                return ($model->in_stock ? 'yes' : 'no'); // настраиваемый столбец, availableкоторый отображает «да» / «нет» в зависимости от поля базы данных in_stock(истина / ложь).
-    });
+            });
+
     }
 
     /*
@@ -116,7 +114,7 @@ class Table extends PowerGridComponent
     |
     */
     public function columns(): array
-    {   $canEdit = true; //User has edit permission
+    {   $isEditable = true; //User has edit permission
         $canCopy = true; //User has permission to copy
         return [
             Column::add()
@@ -125,30 +123,28 @@ class Table extends PowerGridComponent
                 ->makeInputSelect(User::all(), 'id', 'user_id',['live-search' => true]) //Включает определенное поле на страницу для фильтрации отношения hasOne в столбце
                 ->makeInputText('id'),
 
-
             Column::add()
                 ->title(__('ACCOUNT NUMBER'))
                 ->field('account_number')
                 ->makeInputSelect(Account::all(), 'account_number', 'user_id',['live-search' => true]) //Включает определенное поле на страницу для фильтрации отношения hasOne в столбце
-                /*->toggleable($canEdit,'yes', 'no')//кнопка добавляется в каждую ячейку столбца «В наличии ».*/
-                /* ->makeBooleanFilter('in_stock', 'yes', 'no')// Добавляет фильтр для логических значений*/
                 ->makeInputText('account_number'),
-
 
             Column::add()
                 ->title(__('NAME'))
                 ->field('name')
-                ->editOnClick($canEdit) // редактирование в один клик Важно: editOnClick при нажатии требует настройки метода обновления данных .
+                ->sortable()
+                ->searchable()
+                ->editOnClick($isEditable) // редактирование в один клик Важно: editOnClick при нажатии требует настройки метода обновления данных .
                 ->makeInputSelect(User::all(), 'name', 'user_id',['live-search' => true]) //Включает определенное поле на страницу для фильтрации отношения hasOne в столбце
                 ->makeInputText('name'),
 
             Column::add()
                 ->title(__('EMAIL'))
                 ->field('email')
+                ->editOnClick($isEditable) // редактирование в один клик Важно: editOnClick при нажатии требует настройки метода обновления данных .
                 ->sortable()
                 ->searchable()
                 ->makeInputSelect(User::all(), 'email', 'user_id',['live-search' => true]) //Включает определенное поле на страницу для фильтрации отношения hasOne в столбце
-                ->editOnClick($canEdit) // редактирование в один клик Важно: editOnClick при нажатии требует настройки метода обновления данных .
                 ->makeInputText('email'),// Добавляет фильтр ввода текста в столбец
 
             Column::add()
@@ -200,16 +196,18 @@ class Table extends PowerGridComponent
     {
         $canClickButton = true; //User has permission to edit
        return [
+
            Button::add('edit')// Кнопка редактирования
                ->caption(__('Edit'))
                ->class('bg-indigo-500 text-white')
-               ->route('user.edit', ['user' => 'id']),
+               ->route('user.edit', ['user' => 'id'])
+               ->method('put'),
 
            Button::add('destroy') // Кнопка удаления
                ->caption(__('Delete'))
                ->class('bg-red-500 text-white')
                ->route('user.destroy', ['user' => 'id'])
-               ->method('delete'),
+               ->method('put'),
 
         ];
     }

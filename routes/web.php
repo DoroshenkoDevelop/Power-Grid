@@ -22,8 +22,8 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth'])->name('dashboard');
 
-Route::put('edit/{user}',[Table::class,'action'])->name('user.edit');
-/*Route::resource('user.edit',Table::class);*/
-Route::put('delete/{user}',[Table::class,'action'])->name('user.destroy');
+Route::put('edit/{user}',[Table::class,'actions'])->name('user.edit');
+
+Route::put('delete/{user}',[Table::class,'actions'])->name('user.destroy');
 
 require __DIR__.'/auth.php';

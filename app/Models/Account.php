@@ -19,4 +19,10 @@ class Account extends Model
         return $this->hasMany(User::class);
     }
 
+
+    public function client()
+    {
+        return $this->hasMany(Client::class);
+    }
+
 }
