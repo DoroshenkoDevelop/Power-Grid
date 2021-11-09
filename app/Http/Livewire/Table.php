@@ -21,7 +21,7 @@ class Table extends PowerGridComponent
     use ActionButton;
 
     public string $primaryKey = 'users.id';
-    public string $sortField = 'users.id';// Обязательно указывать первичные ключи
+    public string $sortField = 'users.id'; // Обязательно указывать первичные ключи
 
 
     /*
@@ -35,7 +35,7 @@ class Table extends PowerGridComponent
     {
         $this->showCheckBox() // Отображает четбоксы
             ->showPerPage(20) // Показывает раскрывающееся меню для выбора количества строк, отображаемых на странице
-            ->showRecordCount('full')// Показывает количество записей внизу страницы
+            ->showRecordCount(1-10)// Показывает количество записей внизу страницы
             ->showExportOption('download', ['excel', 'csv']) //кнопку экспорта вверху страницы
             ->showSearchInput() // Включает функцию поиска и отображает поле ввода поиска вверху страницы
             ->showToggleColumns(); // Отображает кнопку для скрытия / отображения (переключения) столбцов
@@ -51,7 +51,7 @@ class Table extends PowerGridComponent
     */
     public function datasource(): ?Builder
     {
-        return User::query()->with('account')->with('hasOneAccounts')
+        return User::query()->with('account')
            /* ->join('accounts','users.id','=','accounts.user_id')
             ->select('users.*' ,'accounts.name as account_name');*/
             ->join('accounts', function ($categories) {
@@ -60,7 +60,7 @@ class Table extends PowerGridComponent
             ->select([
                 'users.id',
                 'accounts.id',
-                'accounts.name as account_name','users.name as name','users.email as email'
+                'accounts.account_name as account_name','users.name as name','users.email as email','accounts.account_number as account_number'
             ]);
     }
 
@@ -74,7 +74,8 @@ class Table extends PowerGridComponent
     public function relationSearch(): array
     {
         return [
-            'account' => ['account_name'] // В приведенном выше примере добавляется связь с kitchen моделью и разрешается nameпоиск в столбце
+            'user' => ['name','email','id'],
+            'account' => ['name','account_number','user_id','id']// В приведенном выше примере добавляется связь с моделью и разрешается nameпоиск в столбце
         ];
     }
 
@@ -121,34 +122,42 @@ class Table extends PowerGridComponent
             Column::add()
                 ->title(__('ID'))
                 ->field('id')
+                ->makeInputSelect(User::all(), 'id', 'user_id',['live-search' => true]) //Включает определенное поле на страницу для фильтрации отношения hasOne в столбце
+                ->makeInputText('id'),
+
+
+            Column::add()
+                ->title(__('ACCOUNT NUMBER'))
+                ->field('account_number')
+                ->makeInputSelect(Account::all(), 'account_number', 'user_id',['live-search' => true]) //Включает определенное поле на страницу для фильтрации отношения hasOne в столбце
                 /*->toggleable($canEdit,'yes', 'no')//кнопка добавляется в каждую ячейку столбца «В наличии ».*/
-               /* ->makeBooleanFilter('in_stock', 'yes', 'no')// Добавляет фильтр для логических значений*/
-                ->makeInputRange(),
+                /* ->makeBooleanFilter('in_stock', 'yes', 'no')// Добавляет фильтр для логических значений*/
+                ->makeInputText('account_number'),
+
 
             Column::add()
                 ->title(__('NAME'))
                 ->field('name')
-                ->sortable()
-                ->searchable()
-                ->clickToCopy($canCopy, 'Copy name to clipboard')
                 ->editOnClick($canEdit) // редактирование в один клик Важно: editOnClick при нажатии требует настройки метода обновления данных .
-                ->makeInputSelect(User::all(), 'name', 'name') //Включает определенное поле на страницу для фильтрации отношения hasOne в столбце
-                ->makeInputText(),
+                ->makeInputSelect(User::all(), 'name', 'user_id',['live-search' => true]) //Включает определенное поле на страницу для фильтрации отношения hasOne в столбце
+                ->makeInputText('name'),
 
             Column::add()
                 ->title(__('EMAIL'))
                 ->field('email')
                 ->sortable()
                 ->searchable()
+                ->makeInputSelect(User::all(), 'email', 'user_id',['live-search' => true]) //Включает определенное поле на страницу для фильтрации отношения hasOne в столбце
                 ->editOnClick($canEdit) // редактирование в один клик Важно: editOnClick при нажатии требует настройки метода обновления данных .
-                ->makeInputText(),// Добавляет фильтр ввода текста в столбец
+                ->makeInputText('email'),// Добавляет фильтр ввода текста в столбец
 
             Column::add()
                 ->title(__('ACCOUNTS'))
                 ->field('account_name')
                 ->searchable()
                 ->sortable()
-                ->makeInputSelect(Account::all(), 'name', 'id') //Включает определенное поле на страницу для фильтрации отношения hasOne в столбце
+                ->makeInputSelect(Account::all(), 'account_name', 'user_id',['live-search' => true]) //Включает определенное поле на страницу для фильтрации отношения hasOne в столбце
+                ->makeInputText('account_name')
                 /*->makeInputDatePicker('updated_at')*/,
 
             Column::add()
@@ -156,36 +165,24 @@ class Table extends PowerGridComponent
                 ->field('real')
                 ->searchable()
                 ->sortable()
-                ->makeInputDatePicker('updated_at'),
+                ->makeInputText('real'),
 
             Column::add()
                 ->title(__('DEMO'))
                 ->field('demo')
                 ->searchable()
                 ->sortable()
-                ->makeInputDatePicker('updated_at'),
+                ->makeInputText('demo'),
+
 
             Column::add()
                 ->title(__('CREATED AT'))
-                ->field('created_at_formatted')
-                ->searchable()
-                ->sortable()
-                ->makeInputDatePicker('created_at'),
+                ->field('created_at_formatted'),
 
             Column::add()// Добавляет новый столбец в таблицу PowerGrid
                 ->title(__('UPDATED AT')) // Устанавливает заполнитель для этого столбца при использовании фильтра столбца. Устанавливает заголовок в заголовке столбца
                 ->field('updated_at_formatted')// Связывает столбец с существующим полем источника данных или настраиваемым столбцом
-                ->searchable() // возможность поиска
-                ->sortable()//Добавляет кнопку сортировки в заголовок столбца
-                ->makeInputDatePicker('') //Включает определенное поле на страницу для фильтрации между определенной датой в столбце.
-                ->headerAttribute('text-center', 'color:red')// добавляет классы и стили
-                ->makeInputSelect(User::all(), 'state', 'kitchen_id')//Включает определенное поле на страницу для фильтрации отношения hasOne в столбце
 
-            /*Column::add()
-                ->title(__('Categoria'))
-                ->field('category_name')
-                ->makeInputMultiSelect(Category::all(), 'name', 'category_id')
-                ->sortable('categories.name'),*/ //Если вам нужно отсортировать по столбцу, который находится в другой таблице, вы можете добавить имя таблицы вместе со столбцом. (Например, categories.name)
         ]
 ;
     }
@@ -214,25 +211,8 @@ class Table extends PowerGridComponent
                ->route('user.destroy', ['user' => 'id'])
                ->method('delete'),
 
-           Button::add('new-modal') // Кнопка нового окна
-               ->caption('New window')
-               ->class('bg-gray-300')
-               ->openModal('view-dish', ['dish' => 'id'])//Открывает модальное окно
-               ->method('get')
-               ->route('user.destroy', ['dish' => 'id'])
-               ->can($canClickButton),
-
-           Button::add('view')
-               ->caption('View')
-               ->class('btn btn-primary')
-               ->emit('postAdded', ['key' => 'id'])
-               ->route('user.destroy', ['user' => 'id'])
-               ->method('get')
-               ->can($canClickButton),
         ];
     }
-
-
     /*
     |--------------------------------------------------------------------------
     | Edit Method

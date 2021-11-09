@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Account extends Model
 {
     protected $fillable = [
-        'name',
+        'account_name',
         'account_number',
         'user_id'
     ];
@@ -16,11 +16,7 @@ class Account extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->hasMany(User::class);
     }
 
-    public function hasOneUsers()
-    {
-        return $this->hasOne(User::class);
-    }
 }

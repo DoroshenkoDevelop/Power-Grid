@@ -47,8 +47,4 @@ class User extends Authenticatable
         return $this->hasMany(Account::class);
     }
 
-    public function hasOneAccounts()
-    {
-        return $this->hasOne(Account::class);
-    }
 }
