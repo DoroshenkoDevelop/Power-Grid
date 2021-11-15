@@ -21,7 +21,6 @@ class CreateClientsTable extends Migration
             $table->string('name')->nullable(true);
             $table->bigInteger('internal_id')->unique();
             $table->date('blocked_at')->nullable();
-            $table->string('registration_ip')->default('127.0.0.1');
             $table->timestamps();
         });
     }

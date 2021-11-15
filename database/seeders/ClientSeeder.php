@@ -17,9 +17,9 @@ class ClientSeeder extends Seeder
     {
         Client::factory()->times(100)->create()->each(function ($client)
         {
-            /** @var Client $client */
+           /** @var Client $client */
 
-            $client->account()->save(Account::factory()->create());
+           $client->account()->save(Account::factory()->create());
         });
     }
 }

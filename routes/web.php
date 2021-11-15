@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ExportController;
 use App\Http\Livewire\Table;
 use Illuminate\Support\Facades\Route;
 
@@ -22,8 +23,10 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth'])->name('dashboard');
 
-Route::put('edit/{user}',[Table::class,'actions'])->name('user.edit');
+Route::put('edit/{user}',Table::class)->name('user.edit');
 
-Route::put('delete/{user}',[Table::class,'actions'])->name('user.destroy');
+Route::put('delete/{user}',[Table::class,'destroy'])->name('user.destroy');
+
+Route::get('users/export',[ExportController::class,'export'])->name('exp');
 
 require __DIR__.'/auth.php';

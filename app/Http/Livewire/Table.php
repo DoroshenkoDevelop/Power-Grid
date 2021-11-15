@@ -7,6 +7,7 @@ use App\Models\Account;
 use Illuminate\Support\Carbon;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use phpDocumentor\Reflection\Types\Integer;
 use PowerComponents\LivewirePowerGrid\Button;
@@ -15,6 +16,7 @@ use PowerComponents\LivewirePowerGrid\PowerGrid;
 use PowerComponents\LivewirePowerGrid\PowerGridEloquent;
 use PowerComponents\LivewirePowerGrid\PowerGridComponent;
 use PowerComponents\LivewirePowerGrid\Traits\ActionButton;
+
 
 class Table extends PowerGridComponent
 {
@@ -35,13 +37,24 @@ class Table extends PowerGridComponent
     {
         $this->showCheckBox() // Отображает четбоксы
             ->showPerPage(20) // Показывает раскрывающееся меню для выбора количества строк, отображаемых на странице
-            ->showRecordCount(1-10)// Показывает количество записей внизу страницы
+            ->showRecordCount(1-50)// Показывает количество записей внизу страницы
             ->showExportOption('download', ['excel', 'csv']) //кнопку экспорта вверху страницы
-          /*  ->showSearchInput() // Включает функцию поиска и отображает поле ввода поиска вверху страницы*/
+            ->showSearchInput(User::all()) // Включает функцию поиска и отображает поле ввода поиска вверху страницы
             ->showToggleColumns(); // Отображает кнопку для скрытия / отображения (переключения) столбцов
 
     }
 
+    public function header(): array
+    {
+        $canClickButton = true;
+        return [
+            Button::add('new-modal')
+                ->caption('New window')
+                ->class('bg-gray-300')
+                ->openModal('new', [])
+                ->can($canClickButton),
+        ];
+    }
     /*
     |--------------------------------------------------------------------------
     |  Datasource
@@ -60,7 +73,7 @@ class Table extends PowerGridComponent
             ->select([
                 'users.id',
                 'accounts.id',
-                'accounts.account_name as account_name','users.name as name','users.email as email','accounts.account_number as account_number'
+                'accounts.account_name as account_name','users.name as name','users.email as email','accounts.account_number as account_number',
             ]);
     }
 
@@ -75,7 +88,7 @@ class Table extends PowerGridComponent
     {
         return [
             'user' => ['name','email','id'],
-            'account' => ['name','account_number','user_id','id']// В приведенном примере добавляется связь с моделью и разрешается nameпоиск в столбце
+            'account' => ['name','account_number','user_id','id'] // В приведенном примере добавляется связь с моделью и разрешается name поиск в столбце
         ];
     }
 
@@ -90,7 +103,7 @@ class Table extends PowerGridComponent
     public function addColumns(): ?PowerGridEloquent
     {
         return PowerGrid::eloquent()
-            ->addColumn('id')
+            ->addColumn('user_id')
             ->addColumn('name')
             ->addColumn('email')
             ->addColumn('accounts')
@@ -114,13 +127,14 @@ class Table extends PowerGridComponent
     |
     */
     public function columns(): array
-    {   $isEditable = true; //User has edit permission
+    {
         $canCopy = true; //User has permission to copy
+        $canEdit = true;
         return [
             Column::add()
                 ->title(__('ID'))
                 ->field('id')
-                ->makeInputSelect(User::all(), 'id', 'user_id',['live-search' => true]) //Включает определенное поле на страницу для фильтрации отношения hasOne в столбце
+                ->makeInputSelect(Account::all(), 'id', 'user_id',['live-search' => true]) //Включает определенное поле на страницу для фильтрации отношения hasOne в столбце
                 ->makeInputText('id'),
 
             Column::add()
@@ -132,52 +146,33 @@ class Table extends PowerGridComponent
             Column::add()
                 ->title(__('NAME'))
                 ->field('name')
-                ->sortable()
-                ->searchable()
-                ->editOnClick($isEditable) // редактирование в один клик Важно: editOnClick при нажатии требует настройки метода обновления данных .
+                ->editOnClick() // редактирование в один клик Важно: editOnClick при нажатии требует настройки метода обновления данных .
                 ->makeInputSelect(User::all(), 'name', 'user_id',['live-search' => true]) //Включает определенное поле на страницу для фильтрации отношения hasOne в столбце
-                ->makeInputText('name'),
+                ->makeInputText('name')
+                ->editOnClick($canEdit),
+
 
             Column::add()
                 ->title(__('EMAIL'))
                 ->field('email')
-                ->editOnClick($isEditable) // редактирование в один клик Важно: editOnClick при нажатии требует настройки метода обновления данных .
-                ->sortable()
-                ->searchable()
+                ->editOnClick(true) // редактирование в один клик Важно: editOnClick при нажатии требует настройки метода обновления данных .
                 ->makeInputSelect(User::all(), 'email', 'user_id',['live-search' => true]) //Включает определенное поле на страницу для фильтрации отношения hasOne в столбце
                 ->makeInputText('email'),// Добавляет фильтр ввода текста в столбец
 
             Column::add()
                 ->title(__('ACCOUNTS'))
                 ->field('account_name')
-                ->searchable()
-                ->sortable()
                 ->makeInputSelect(Account::all(), 'account_name', 'user_id',['live-search' => true]) //Включает определенное поле на страницу для фильтрации отношения hasOne в столбце
                 ->makeInputText('account_name')
-                /*->makeInputDatePicker('updated_at')*/,
-
-            Column::add()
-                ->title(__('REAL'))
-                ->field('real')
-                ->searchable()
-                ->sortable()
-                ->makeInputText('real'),
-
-            Column::add()
-                ->title(__('DEMO'))
-                ->field('demo')
-                ->searchable()
-                ->sortable()
-                ->makeInputText('demo'),
 
 
-            Column::add()
+           /* Column::add()
                 ->title(__('CREATED AT'))
                 ->field('created_at_formatted'),
 
             Column::add()// Добавляет новый столбец в таблицу PowerGrid
                 ->title(__('UPDATED AT')) // Устанавливает заполнитель для этого столбца при использовании фильтра столбца. Устанавливает заголовок в заголовке столбца
-                ->field('updated_at_formatted')// Связывает столбец с существующим полем источника данных или настраиваемым столбцом
+                ->field('updated_at_formatted')// Связывает столбец с существующим полем источника данных или настраиваемым столбцом*/
 
         ]
 ;
@@ -191,23 +186,24 @@ class Table extends PowerGridComponent
     |
     */
 
-
     public function actions(): array
     {
         $canClickButton = true; //User has permission to edit
        return [
 
-           Button::add('edit')// Кнопка редактирования
+    /*       Button::add('edit')// Кнопка редактирования
+               ->target('_blank')
                ->caption(__('Edit'))
                ->class('bg-indigo-500 text-white')
-               ->route('user.edit', ['user' => 'id'])
-               ->method('put'),
+               ->route('user.edit',['user' => 'id'])
+               ->method('PUT'),*/
 
            Button::add('destroy') // Кнопка удаления
                ->caption(__('Delete'))
                ->class('bg-red-500 text-white')
                ->route('user.destroy', ['user' => 'id'])
-               ->method('put'),
+               ->method('PUT')
+               ->can($canClickButton)
 
         ];
     }
@@ -252,6 +248,25 @@ class Table extends PowerGridComponent
     public function template(): ?string
     {
         return null;
+    }
+
+    public $user;
+
+    public function destroy($id)
+    {
+        if(empty($user))
+        {
+            Log::error('fatal');
+        }
+        else
+        {
+            Log::alert('done');
+        }
+
+        $user = User::find($id);
+        $user->delete();
+        return redirect('/dashboard')->with('success', 'Пользователь успешно удален');
+
     }
 
 }
