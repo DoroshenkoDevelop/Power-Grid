@@ -29,4 +29,6 @@ Route::put('delete/{user}',[Table::class,'destroy'])->name('user.destroy');
 
 Route::get('users/export',[ExportController::class,'export'])->name('exp');
 
+Route::get('/search',[\App\Http\Controllers\SearchController::class,'search']);
+
 require __DIR__.'/auth.php';
