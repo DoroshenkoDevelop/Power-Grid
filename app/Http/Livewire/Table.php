@@ -47,13 +47,7 @@ class Table extends PowerGridComponent
     public function header(): array
     {
         $canClickButton = true;
-        return [
-            Button::add('new-modal')
-                ->caption('New window')
-                ->class('bg-gray-300')
-                ->openModal('new', [])
-                ->can($canClickButton),
-        ];
+        return [];
     }
     /*
     |--------------------------------------------------------------------------
@@ -163,16 +157,21 @@ class Table extends PowerGridComponent
                 ->title(__('ACCOUNTS'))
                 ->field('account_name')
                 ->makeInputSelect(Account::all(), 'account_name', 'user_id',['live-search' => true]) //Включает определенное поле на страницу для фильтрации отношения hasOne в столбце
-                ->makeInputText('account_name')
+                ->makeInputText('account_name'),
 
+            Column::add()
+                ->title(__('PRODUCTS'))
+                ->field('product')
+                ->makeInputSelect(Account::all(), 'account_name', 'user_id',['live-search' => true]) //Включает определенное поле на страницу для фильтрации отношения hasOne в столбце
+                ->makeInputText('account_name'),
 
-           /* Column::add()
+            Column::add()
                 ->title(__('CREATED AT'))
                 ->field('created_at_formatted'),
 
             Column::add()// Добавляет новый столбец в таблицу PowerGrid
                 ->title(__('UPDATED AT')) // Устанавливает заполнитель для этого столбца при использовании фильтра столбца. Устанавливает заголовок в заголовке столбца
-                ->field('updated_at_formatted')// Связывает столбец с существующим полем источника данных или настраиваемым столбцом*/
+                ->field('updated_at_formatted')// Связывает столбец с существующим полем источника данных или настраиваемым столбцом
 
         ]
 ;
@@ -198,12 +197,12 @@ class Table extends PowerGridComponent
                ->route('user.edit',['user' => 'id'])
                ->method('PUT'),*/
 
-           Button::add('destroy') // Кнопка удаления
+           /*Button::add('destroy') // Кнопка удаления
                ->caption(__('Delete'))
                ->class('bg-red-500 text-white')
                ->route('user.destroy', ['user' => 'id'])
                ->method('PUT')
-               ->can($canClickButton)
+               ->can($canClickButton)*/
 
         ];
     }
@@ -219,7 +218,14 @@ class Table extends PowerGridComponent
     public function update(array $data ): bool
     {
        try {
-           $updated = User::query()->find($data['id'])->update([
+           $updated = User::query()->join('accounts', function ($categories) {
+               $categories->on('users.id', '=', 'accounts.user_id');
+           })
+               ->select([
+                   'users.id',
+                   'accounts.id',
+                   'accounts.account_name as account_name','users.name as name','users.email as email','accounts.account_number as account_number',
+               ])->find($data['id'])->update([
                 $data['field'] => $data['value']
            ]);
        } catch (QueryException $exception) {
@@ -252,21 +258,12 @@ class Table extends PowerGridComponent
 
     public $user;
 
+
     public function destroy($id)
     {
-        if(empty($user))
-        {
-            Log::error('fatal');
-        }
-        else
-        {
-            Log::alert('done');
-        }
-
         $user = User::find($id);
         $user->delete();
         return redirect('/dashboard')->with('success', 'Пользователь успешно удален');
-
     }
 
 }

@@ -4,14 +4,17 @@
             {{ __('Table') }}
         </h2>
     </x-slot>
-    <div class="text-center">
-        <a href="{{route('exp')}}" class="button">Exports</a>
-        @livewire('search')
+    @section('content')
+    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+        <div class="p-6 bg-white border-b border-gray-200">
+            <livewire:user-controller/>
+        </div>
     </div>
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 bg-white border-b border-gray-200">
                     <livewire:table/>
                 </div>
             </div>
-
+    @endsection
 </x-app-layout>
+

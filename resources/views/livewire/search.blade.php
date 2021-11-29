@@ -1,6 +1,5 @@
 <div>
     <input type="text" wire:model="searchTerm">
-
     <ul>
         @foreach($users as $user)
             <li>

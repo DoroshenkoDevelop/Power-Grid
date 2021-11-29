@@ -2,8 +2,11 @@
 
 namespace App\Console;
 
+use App\Models\User;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use Illuminate\Support\Facades\DB;
+use phpDocumentor\Reflection\Location;
 
 class Kernel extends ConsoleKernel
 {
@@ -13,7 +16,7 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        //
+
     ];
 
     /**
@@ -22,9 +25,20 @@ class Kernel extends ConsoleKernel
      * @param  \Illuminate\Console\Scheduling\Schedule  $schedule
      * @return void
      */
-    protected function schedule(Schedule $schedule)
+    protected function schedule(Schedule $schedule) //  Прописываем команду
     {
-        // $schedule->command('inspire')->hourly();
+        $schedule->command('message:delete')// Название команды
+            ->everyMinute(); // Отрабатывает каждую минуту
+            /*->appendOutputTo('scheduler.log')*/ // Сохраняет в определенный файл
+            /*->emailOutputTo('printcodestudio@gmail.com');*/ // Отправляется на Email
+            /*->timezone('Europe/Minsk')
+            ->at('10.31');*/
+    }
+
+
+    public function scheduleTimezone()
+    {
+       /* return 'Europe/Minsk'*/; //
     }
 
     /**
