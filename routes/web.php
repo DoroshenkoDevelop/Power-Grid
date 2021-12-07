@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\CarbonTestController;
 use App\Http\Controllers\ExportController;
 use App\Http\Livewire\Table;
 use Illuminate\Support\Facades\Route;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -19,9 +21,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth'])->name('dashboard');
+Route::get('dashboard', [CarbonTestController::class,'index'])->middleware(['auth'])->name('dashboard');
 
 Route::put('edit/{user}',Table::class)->name('user.edit');
 
@@ -30,5 +30,8 @@ Route::put('delete/{user}',[Table::class,'destroy'])->name('user.destroy');
 Route::get('users/export',[ExportController::class,'export'])->name('exp');
 
 Route::get('/search',[\App\Http\Controllers\SearchController::class,'search']);
+
+
+
 
 require __DIR__.'/auth.php';

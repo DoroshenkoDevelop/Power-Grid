@@ -58,6 +58,7 @@ class Table extends PowerGridComponent
     */
     public function datasource(): ?Builder
     {
+
         return User::query()->with('account')
            /* ->join('accounts','users.id','=','accounts.user_id')
             ->select('users.*' ,'accounts.name as account_name');*/

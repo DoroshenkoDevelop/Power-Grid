@@ -17,6 +17,8 @@
         "livewire/livewire": "^2.7",
         "maatwebsite/excel": "^3.1",
         "meilisearch/meilisearch-php": "^0.19.2",
+        "nesbot/carbon": "^2.55",
+        "kylekatarnls/laravel-carbon-2": "^1.0.0",
         "power-components/livewire-powergrid": "^1.4"
     },
     "require-dev": {
@@ -24,8 +26,10 @@
         "composer/composer": "^2.1",
         "facade/ignition": "^2.5",
         "fakerphp/faker": "^1.9.1",
+        "kylekatarnls/carbonite": "^1.4",
         "laravel/breeze": "^1.4",
         "laravel/sail": "^1.12",
+        "laravel/telescope": "^4.6",
         "mockery/mockery": "^1.4.4",
         "nunomaduro/collision": "^5.10",
         "phpunit/phpunit": "^9.5"
@@ -37,6 +41,7 @@
             "Database\\Seeders\\": "database/seeders/"
         }
     },
+
     "autoload-dev": {
         "psr-4": {
             "Tests\\": "tests/"
@@ -59,7 +64,7 @@
     },
     "extra": {
         "laravel": {
-            "dont-discover": []
+            "dont-discover": ["laravel/telescope"]
         }
     },
     "config": {
@@ -74,7 +79,9 @@
     "post-autoload-dump": [
         "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
         "@php artisan package:discover --ansi",
-        "@php artisan vendor:publish --force --tag=livewire:assets --ansi"
+        "@php artisan vendor:publish --force --tag=livewire:assets --ansi",
+        "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+        "@php artisan package:discover --ansi"
     ]
 }
 }
